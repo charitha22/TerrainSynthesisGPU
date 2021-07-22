@@ -150,7 +150,7 @@ int GPUQSort<element>::sort(element* data, unsigned int size, double* timerValue
 	workset[0].flip = false;
 
 	// Get a starting pivot
-	workset[0].pivot = (min(min(data[0],data[size/2]),data[size-1]) + max(max(data[0],data[size/2]),data[size-1]))/2;
+	workset[0].pivot = (std::min(std::min(data[0],data[size/2]),data[size-1]) + std::max(std::max(data[0],data[size/2]),data[size-1]))/2;
 	unsigned int worksize = 1;
 
 	unsigned int blocks = blockscount/2;
@@ -174,7 +174,7 @@ int GPUQSort<element>::sort(element* data, unsigned int size, double* timerValue
 				continue;
 
 			// Larger sequences gets more thread blocks assigned to them
-			unsigned int blocksassigned = max((workset[i].end-workset[i].beg)/ws,1);
+			unsigned int blocksassigned = std::max((unsigned int)((workset[i].end-workset[i].beg)/ws),(unsigned int)1);
 			for(unsigned int q=0;q<blocksassigned;q++)
 			{
 				params[paramsize].from = workset[i].beg + ws*q;
@@ -223,11 +223,11 @@ int GPUQSort<element>::sort(element* data, unsigned int size, double* timerValue
 			workset[params[i].ptr].end-=r;
 			workset[params[i].ptr].altered = true;
 			
-			workset[params[i].ptr].rmaxpiv = max(length->maxpiv[i],workset[params[i].ptr].rmaxpiv);
-			workset[params[i].ptr].lminpiv = min(length->minpiv[i],workset[params[i].ptr].lminpiv);
+			workset[params[i].ptr].rmaxpiv = std::max(length->maxpiv[i],workset[params[i].ptr].rmaxpiv);
+			workset[params[i].ptr].lminpiv = std::min(length->minpiv[i],workset[params[i].ptr].lminpiv);
 			
-			workset[params[i].ptr].lmaxpiv = min(workset[params[i].ptr].pivot,workset[params[i].ptr].rmaxpiv); 
-			workset[params[i].ptr].rminpiv = max(workset[params[i].ptr].pivot,workset[params[i].ptr].lminpiv); 
+			workset[params[i].ptr].lmaxpiv = std::min(workset[params[i].ptr].pivot,workset[params[i].ptr].rmaxpiv); 
+			workset[params[i].ptr].rminpiv = std::max(workset[params[i].ptr].pivot,workset[params[i].ptr].lminpiv); 
 
 			
 		}
@@ -305,7 +305,7 @@ int GPUQSort<element>::sort(element* data, unsigned int size, double* timerValue
 
 		// Run the local quicksort, the one that doesn't need inter-block synchronization
 		if(phase!=1) 
-			lqsort<<< worksize, THREADS, max((THREADS+1)*2*4,sbsize*4) >>>(ddata,ddata2,dlqparams,phase);
+			lqsort<<< worksize, THREADS, std::max((THREADS+1)*2*4,sbsize*4) >>>(ddata,ddata2,dlqparams,phase);
 	}
 
 	cudaThreadSynchronize();

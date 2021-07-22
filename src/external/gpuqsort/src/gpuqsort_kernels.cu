@@ -55,7 +55,7 @@ __device__ inline void swap(unsigned int& a, unsigned int& b)
 * @param size The number of unsigned ints
 */
 //template <typename unsigned int>
-__device__ inline
+__device__  __noinline__
 void bitonicSort(unsigned int* fromvalues, unsigned int* tovalues, unsigned int from, unsigned int size)
 {
 	unsigned int* shared = (unsigned int*)sarray;

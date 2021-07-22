@@ -3,6 +3,18 @@ TEST_SOURCES 	= main.cpp dists.cpp
 LIB_OBJ		= $(LIB_SOURCES:.cu=.o)
 TEST_OBJ	= $(TEST_SOURCES:.cpp=.o)
 
+# building with clang
+CUDA_DIR = /usr/local/cuda-10.1
+
+ARCH=sm_61
+LLVM_HOME=/home/charitha/workspace/llvm-project-rocm/build_install
+CLANG = $(LLVM_HOME)/bin/clang++
+OPT = $(LLVM_HOME)/bin/opt
+CLANG_FLAGS := -I$(CUDA_DIR)/include --cuda-path=$(CUDA_DIR) --cuda-gpu-arch=$(ARCH) 
+OPTLEVEL := -O3
+INCLUDES := -Iinc
+
+
 all: gpuqsortlib testbench
 
 gpuqsortlib: $(LIB_OBJ)
@@ -20,3 +32,21 @@ testbench: $(TEST_OBJ) gpuqsortlib
 
 %.o: testbench/%.cpp
 	gcc -O3 -Iinc -c $< -o $@
+
+gpuqsort_clang_cfm.o : src/gpuqsort.cu
+	mkdir -p tmp
+	sh compile_with_cfmerger.sh
+
+gpuqsort_clang.o : src/gpuqsort.cu
+	$(EXEC) $(CLANG) $(INCLUDES) $(CLANG_FLAGS) $(OPTLEVEL) -o $@ -c  $<
+
+testbench_clang : gpuqsort_clang.o $(TEST_OBJ)
+	$(EXEC) $(CLANG) -o $@ $^ -lglut -lcudart -L$(CUDA_DIR)/lib64
+
+
+
+testbench_clang_cfm : gpuqsort_clang_cfm.o $(TEST_OBJ)
+	$(EXEC) $(CLANG) -o $@ $^ -lglut -lcudart -L$(CUDA_DIR)/lib64
+
+clean :
+	rm -rf *.o ./bin/* ./lib/* ./*.ll ./tmp/* testbench_clang_cfm testbench_clang
